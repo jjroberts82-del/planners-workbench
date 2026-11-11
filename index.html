@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planner's Workbench</title>
+<style>
+  :root {
+    --bg: #F8FAFC; --fg: #0A0A0A; --muted: #525252; --border: #CBD5E1; --card: #FFFFFF;
+    --primary: #1E3A5F; --primary-fg: #FFFFFF; --warn-bg: #FEF3C7; --warn-fg: #92400E;
+    --err-bg: #FEE2E2; --err-fg: #991B1B; --ok: #166534;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+  .bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 8px 16px; background: var(--card); border-bottom: 1px solid var(--border); font-size: 13px; }
+  .bar .who { color: var(--muted); }
+  .bar .spacer { flex: 1; }
+  .switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+  .switch input { width: 18px; height: 18px; accent-color: #B45309; }
+  .updates-on { background: var(--warn-bg); color: var(--warn-fg); padding: 2px 10px; border-radius: 999px; font-weight: 600; }
+  .updates-off { color: var(--muted); }
+  button { font: inherit; }
+  .link { background: none; border: none; color: var(--primary); text-decoration: underline; cursor: pointer; padding: 0; }
+  .signin { max-width: 420px; margin: 48px auto; padding: 24px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; }
+  .signin h1 { font-size: 22px; font-weight: 500; margin: 0 0 4px; }
+  .signin p { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+  .signin label { display: block; font-size: 12px; color: var(--muted); margin: 12px 0 4px; }
+  .signin input[type=text], .signin input[type=password], .signin input[type=url] { width: 100%; padding: 8px 10px; border: 1px solid #64748B; border-radius: 6px; font: inherit; font-size: 14px; background: #fff; }
+  .row { display: flex; gap: 12px; }
+  .row > div { flex: 1; }
+  .check { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 13px; color: var(--muted); }
+  .primary { margin-top: 18px; width: 100%; padding: 10px; border: none; border-radius: 6px; background: var(--primary); color: var(--primary-fg); font-weight: 600; cursor: pointer; }
+  .primary:disabled { opacity: .6; cursor: wait; }
+  .msg { margin-top: 12px; padding: 8px 10px; border-radius: 6px; font-size: 13px; display: none; }
+  .msg.err { display: block; background: var(--err-bg); color: var(--err-fg); }
+  .hidden { display: none !important; }
+  @media (max-width: 480px) { .signin { margin: 16px; } .row { flex-direction: column; gap: 0; } }
+</style>
+</head>
+<body>
+
+<section id="signin" class="signin" aria-labelledby="signin-title">
+  <h1 id="signin-title">Planner's Workbench</h1>
+  <p>Sign in with your Kinetic account. Credentials stay in this browser tab and are never saved in the page.</p>
+  <form id="signin-form" autocomplete="on">
+    <label for="server">Kinetic server URL</label>
+    <input id="server" type="url" required>
+    <div class="row">
+      <div><label for="company">Company</label><input id="company" type="text" required></div>
+      <div><label for="plant">Site</label><input id="plant" type="text" required></div>
+    </div>
+    <label for="username">Username</label>
+    <input id="username" type="text" autocomplete="username" required>
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" required>
+    <label for="apikey">API key</label>
+    <input id="apikey" type="password" autocomplete="off" required>
+    <label class="check"><input id="remember" type="checkbox" checked> Stay signed in until this tab is closed</label>
+    <button id="signin-button" class="primary" type="submit">Sign in</button>
+    <div id="signin-msg" class="msg" role="alert"></div>
+  </form>
+</section>
+
+<div id="app" class="hidden">
+  <div class="bar">
+    <strong>Planner's Workbench</strong>
+    <span class="who" id="who"></span>
+    <span class="spacer"></span>
+    <label class="switch" title="When off, Release and other write actions are blocked.">
+      <input id="allow-updates" type="checkbox">
+      <span id="updates-label" class="updates-off">Allow updates: off</span>
+    </label>
+    <button id="signout" class="link" type="button">Sign out</button>
+  </div>
+  <div id="mount"></div>
+</div>
+
+<script type="module">
+  import { CONFIG } from './config.js';
+  import { session, callService } from './prism-shim.js';
+
+  const $ = (id) => document.getElementById(id);
+  const KEY = 'pw-session';
+  const store = {
+    get() { try { return JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch { return null; } },
+    set(v) { try { sessionStorage.setItem(KEY, JSON.stringify(v)); } catch { /* storage unavailable */ } },
+    clear() { try { sessionStorage.removeItem(KEY); } catch { /* storage unavailable */ } },
+  };
+
+  $('server').value = CONFIG.serverUrl;
+  $('company').value = CONFIG.company;
+  $('plant').value = CONFIG.plant;
+  session.timeoutSeconds = CONFIG.timeoutSeconds;
+
+  function setUpdates(on) {
+    session.allowUpdates = on;
+    $('allow-updates').checked = on;
+    $('updates-label').textContent = on ? 'Allow updates: ON' : 'Allow updates: off';
+    $('updates-label').className = on ? 'updates-on' : 'updates-off';
+  }
+
+  async function start(creds) {
+    Object.assign(session, creds);
+    // A small read to confirm the server, credentials, and API key before loading the workbench
+    await callService({ service: 'Erp.BO.SalesOrderSvc', operation: 'SalesOrders', method: 'GET', input: { $top: 1, $select: 'OrderNum' } });
+    $('who').textContent = `${creds.company} · ${creds.plant} · ${creds.username}`;
+    $('signin').classList.add('hidden');
+    $('app').classList.remove('hidden');
+    setUpdates(false);
+    if (!customElements.get('planners-workbench')) {
+      const mod = await import('./workbench.js');
+      customElements.define('planners-workbench', mod.default);
+    }
+    $('mount').innerHTML = '<planners-workbench></planners-workbench>';
+  }
+
+  $('signin-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('signin-msg');
+    msg.className = 'msg'; msg.textContent = '';
+    const creds = {
+      serverUrl: $('server').value.trim(), company: $('company').value.trim(), plant: $('plant').value.trim(),
+      username: $('username').value.trim(), password: $('password').value, apiKey: $('apikey').value.trim(),
+    };
+    $('signin-button').disabled = true; $('signin-button').textContent = 'Signing in…';
+    try {
+      await start(creds);
+      if ($('remember').checked) store.set(creds); else store.clear();
+    } catch (err) {
+      msg.className = 'msg err'; msg.textContent = err.message || String(err);
+    } finally {
+      $('signin-button').disabled = false; $('signin-button').textContent = 'Sign in';
+    }
+  });
+
+  $('allow-updates').addEventListener('change', (e) => {
+    if (e.target.checked && !confirm('Turn on updates? Release and other actions will change data in Kinetic.')) {
+      e.target.checked = false; return;
+    }
+    setUpdates(e.target.checked);
+  });
+
+  $('signout').addEventListener('click', () => {
+    store.clear();
+    Object.assign(session, { username: '', password: '', apiKey: '' });
+    location.reload();
+  });
+
+  const saved = store.get();
+  if (saved) start(saved).catch(() => { store.clear(); });
+</script>
+</body>
+</html>
