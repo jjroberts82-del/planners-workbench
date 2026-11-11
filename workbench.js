@@ -6992,6 +6992,64 @@ const formatDate = (value) => {
 
 const formatQty = (value) => value === null || value === undefined || value === '' ? '—' : Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
+const JOB_DRAWER_STYLES = `<style>
+.detail-panel.job-drawer { width: min(820px, 100vw); }
+.jd-title { margin-bottom: 2px !important; }
+.jd-sub { color: var(--base-muted-foreground); font-size: 13px; margin-bottom: 10px; }
+.jd-muted { color: var(--base-muted-foreground); font-size: 13px; }
+.jd-small { font-size: 12px; margin-top: 6px; }
+.jd-error { background: var(--error-background); color: var(--error-foreground); border: 1px solid var(--error-border); padding: 10px 12px; border-radius: 6px; font-size: 13px; }
+.jd-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.jd-chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: var(--base-muted); color: var(--base-foreground); border: 1px solid var(--card-border); }
+.jd-chip.jd-bad { background: var(--error-background); color: var(--error-foreground); border-color: var(--error-border); }
+.jd-chip.jd-warn { background: var(--warning-background); color: var(--warning-foreground); border-color: transparent; }
+.jd-chip.jd-good { background: var(--success-background); color: var(--success-foreground); border-color: transparent; }
+.jd-badtext { color: var(--error-foreground); font-weight: 600; }
+.jd-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px 16px; margin: 0 0 12px; }
+.jd-facts div { display: block; }
+.jd-facts dt { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--base-muted-foreground); }
+.jd-facts dd { margin: 2px 0 0; font-size: 15px; text-align: left; }
+.jd-progress { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--base-muted-foreground); margin-bottom: 12px; }
+.jd-bar { flex: 1; height: 8px; background: var(--base-muted); border-radius: 999px; overflow: hidden; border: 1px solid var(--card-border); }
+.jd-bar span { display: block; height: 100%; background: #15803D; }
+.jd-release { margin-bottom: 8px; }
+.jd-h { font-size: 15px; font-weight: 600; margin: 22px 0 8px; padding-top: 14px; border-top: 1px solid var(--card-border); }
+.jd-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; font-size: 12px; color: var(--base-muted-foreground); margin-bottom: 8px; }
+.jd-li { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.jd-key { display: inline-block; width: 12px; height: 8px; border-radius: 2px; }
+.jd-key.done, .jd-tbar.done, .jd-dot.done { background: #15803D; }
+.jd-key.active, .jd-tbar.active, .jd-dot.active { background: #D97706; }
+.jd-key.late, .jd-tbar.late, .jd-dot.late { background: #B91C1C; }
+.jd-key.notstarted, .jd-tbar.notstarted, .jd-dot.notstarted { background: #94A3B8; }
+.jd-key.est, .jd-cbar.est { background: #94A3B8; }
+.jd-key.act, .jd-cbar.act { background: #1E3A5F; }
+.jd-timeline { border: 1px solid var(--card-border); border-radius: 6px; padding: 8px 10px; }
+.jd-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--base-muted-foreground); margin-left: 150px; margin-bottom: 4px; }
+.jd-trow { display: flex; align-items: center; height: 22px; }
+.jd-tlabel { width: 150px; flex: none; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
+.jd-ttrack { position: relative; flex: 1; height: 12px; background: var(--base-muted); border-radius: 3px; }
+.jd-ttrack em { font-size: 11px; color: var(--base-muted-foreground); position: absolute; left: 4px; top: -2px; }
+.jd-tbar { position: absolute; top: 0; height: 12px; border-radius: 3px; }
+.jd-today { position: absolute; top: -4px; bottom: -4px; width: 2px; background: #0A0A0A; opacity: .55; z-index: 1; }
+.jd-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.jd-scroll { overflow-x: auto; }
+.jd-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.jd-table th { text-align: left; font-weight: 600; color: var(--base-muted-foreground); font-size: 11px; text-transform: uppercase; letter-spacing: .03em; padding: 6px 8px; border-bottom: 1px solid var(--card-border); white-space: nowrap; }
+.jd-table td { padding: 6px 8px; border-bottom: 1px solid var(--card-border); vertical-align: top; }
+.jd-table .n { text-align: right; font-variant-numeric: tabular-nums; }
+.jd-shortrow { background: var(--error-background); }
+.jd-supply { min-width: 170px; white-space: normal; }
+.jd-supply > div + div { margin-top: 6px; }
+.jd-supply .jd-chip { margin-bottom: 2px; }
+.jd-costs { display: grid; gap: 8px; margin-bottom: 10px; }
+.jd-crow { display: flex; align-items: center; gap: 10px; }
+.jd-clabel { width: 120px; flex: none; font-size: 12px; }
+.jd-cbars { flex: 1; display: grid; grid-template-columns: 1fr auto; gap: 3px 8px; align-items: center; }
+.jd-cbar { display: block; height: 9px; border-radius: 3px; min-width: 2px; }
+.jd-cval { font-size: 11px; color: var(--base-muted-foreground); font-variant-numeric: tabular-nums; min-width: 64px; text-align: right; }
+@media (max-width: 600px) { .jd-tlabel { width: 100px; } .jd-axis { margin-left: 100px; } .jd-clabel { width: 90px; } }
+</style>`;
+
 const daysFromToday = (value) => {
   if (!value) return null;
   const target = new Date(value);
@@ -7360,11 +7418,11 @@ class PlannerRuntime {
           this._inventory.set(part.PartNum, warehouses.reduce((sum, warehouse) => sum + Number(warehouse.OnHandQty || 0) - Number(warehouse.AllocatedQty || 0), 0));
         });
       }
-      const poResult = await this.host.callService({ service: 'Erp.BO.POSvc', operation: 'POes', method: 'GET', input: { $filter: 'OpenOrder eq true', $select: 'PONum,OpenOrder', $expand: 'PODetails($select=PartNum,OrderQty,DueDate;$filter=OpenLine eq true;$expand=PORels($select=XRelQty,ReceivedQty,DueDate;$filter=OpenRelease eq true))' } });
+      const poResult = await this.host.callService({ service: 'Erp.BO.POSvc', operation: 'POes', method: 'GET', input: { $filter: 'OpenOrder eq true', $select: 'PONum,OpenOrder,VendorNum', $expand: 'PODetails($select=POLine,PartNum,OrderQty,DueDate;$filter=OpenLine eq true;$expand=PORels($select=XRelQty,ReceivedQty,DueDate;$filter=OpenRelease eq true))' } });
       this._incoming = new Map();
       (poResult && poResult.data && Array.isArray(poResult.data.value) ? poResult.data.value : []).forEach((po) => (Array.isArray(po.PODetails) ? po.PODetails : []).forEach((detail) => (Array.isArray(detail.PORels) ? detail.PORels : []).forEach((release) => {
         if (!this._incoming.has(detail.PartNum)) this._incoming.set(detail.PartNum, []);
-        this._incoming.get(detail.PartNum).push({ quantity: Math.max(0, Number(release.XRelQty || 0) - Number(release.ReceivedQty || 0)), ordered: Number(release.XRelQty || 0), received: Number(release.ReceivedQty || 0), dueDate: release.DueDate, expectedDate: release.PromiseDt || release.DueDate });
+        this._incoming.get(detail.PartNum).push({ quantity: Math.max(0, Number(release.XRelQty || 0) - Number(release.ReceivedQty || 0)), ordered: Number(release.XRelQty || 0), received: Number(release.ReceivedQty || 0), dueDate: release.DueDate, expectedDate: release.PromiseDt || release.DueDate, poNum: po.PONum, poLine: detail.POLine, vendorNum: po.VendorNum });
       })));
       this._refreshMaterialStatuses();
     } catch (error) {
@@ -7576,7 +7634,7 @@ class PlannerRuntime {
       return `<tr class="demand-row jobs-row" tabindex="0" data-job-num="${escapeHtml(job.JobNum)}" aria-label="Job ${escapeHtml(job.JobNum)}, due ${escapeHtml(formatDate(job.DueDate || job.ReqDueDate))}"><td class="mono">${escapeHtml(job.JobNum)}</td><td class="mono">${escapeHtml(job.PartNum)}</td><td class="mono">${escapeHtml(job.RevisionNum || '—')}</td><td class="date-cell ${dueClass}">${formatDate(job.DueDate || job.ReqDueDate)}</td><td class="job-status ${releaseClass}">${job.JobReleased === false ? 'No' : 'Yes'}</td><td>${job.JobFirm ? 'Yes' : 'No'}</td><td class="material-status ${materialStatus.tone}">${escapeHtml(materialStatus.label)}</td><td class="job-status ${dueClass}">${escapeHtml(job.currentOp)}</td><td>${this._releaseButton(job)}</td></tr>${operations}`;
     }).join('');
     e.jobsBody.querySelectorAll('.jobs-row').forEach((rowEl) => {
-      const open = (event) => { if (event && event.target.closest('[data-release-job]')) return; const job = this._jobs.find((item) => String(item.JobNum) === String(rowEl.dataset.jobNum)); if (job && !this._jobOperationsAvailable && !job.operations.length) this._loadJobOperations(job); };
+      const open = (event) => { if (event && event.target.closest('[data-release-job]')) return; const job = this._jobs.find((item) => String(item.JobNum) === String(rowEl.dataset.jobNum)); if (job && !this._jobOperationsAvailable && !job.operations.length) this._loadJobOperations(job); if (job) this._openJobDetail(job.JobNum); };
       rowEl.addEventListener('click', open);
       rowEl.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
     });
@@ -7824,7 +7882,229 @@ class PlannerRuntime {
     if (this._els.closePanel) this._els.closePanel.focus();
   }
 
+  // ---------------------------------------------------------------- job detail drawer
+  async _openJobDetail(jobNum) {
+    const job = this._jobs.find((item) => String(item.JobNum) === String(jobNum));
+    const e = this._els;
+    if (!job || !e || !e.panel || !e.panelContent) return;
+    this._selected = { jobDetail: job.JobNum };
+    this._detailToken = (this._detailToken || 0) + 1;
+    const token = this._detailToken;
+    this._jobDetail = { job, ds: null, error: '', labor: null, laborError: '' };
+    e.panel.classList.add('job-drawer');
+    this._setPanelHeader('Job detail', `Job ${job.JobNum}`);
+    this._renderJobDetail();
+    e.panel.hidden = false;
+    const backdrop = this.host.contentRoot.querySelector('#panel-backdrop');
+    if (backdrop) backdrop.hidden = false;
+    if (e.closePanel) e.closePanel.focus();
+    try {
+      const result = await this.host.callService({ service: 'Erp.BO.JobEntrySvc', operation: 'GetByID', method: 'POST', input: { jobNum: job.JobNum } });
+      if (token !== this._detailToken) return;
+      const ds = result && result.data && result.data.returnObj;
+      if (!ds || !Array.isArray(ds.JobHead)) throw new Error('Kinetic did not return the job dataset.');
+      this._jobDetail.ds = ds;
+    } catch (error) {
+      if (token !== this._detailToken) return;
+      this._jobDetail.error = error && error.message ? error.message : String(error);
+    }
+    this._renderJobDetail();
+    if (this._jobDetail.ds) {
+      this._loadJobLabor(job.JobNum, token);
+      this._loadVendorNames(token);
+    }
+  }
+
+  async _loadJobLabor(jobNum, token) {
+    const filter = `JobNum eq '${String(jobNum).replace(/'/g, "''")}'`;
+    const sources = this._laborSource ? [this._laborSource] : [['Erp.BO.LaborDtlSearchSvc', 'LaborDtlSearches'], ['Erp.BO.LaborSvc', 'LaborDtls']];
+    let lastError = '';
+    for (const [service, operation] of sources) {
+      try {
+        const result = await this.host.callService({ service, operation, method: 'GET', input: { $filter: filter, $top: '200' } });
+        if (token !== this._detailToken) return;
+        this._laborSource = [service, operation];
+        this._jobDetail.labor = result && result.data && Array.isArray(result.data.value) ? result.data.value : [];
+        this._renderJobDetail();
+        return;
+      } catch (error) {
+        lastError = error && error.message ? error.message : String(error);
+      }
+    }
+    if (token !== this._detailToken) return;
+    this._jobDetail.labor = [];
+    this._jobDetail.laborError = lastError;
+    this._renderJobDetail();
+  }
+
+  async _loadVendorNames(token) {
+    this._vendorNames = this._vendorNames || new Map();
+    const ds = this._jobDetail && this._jobDetail.ds;
+    if (!ds) return;
+    const nums = new Set();
+    (ds.JobMtl || []).forEach((mtl) => (this._incoming.get(mtl.PartNum) || []).forEach((supply) => { if (supply.vendorNum && !this._vendorNames.has(supply.vendorNum)) nums.add(supply.vendorNum); }));
+    if (!nums.size) return;
+    try {
+      const filter = [...nums].slice(0, 25).map((num) => `VendorNum eq ${Number(num)}`).join(' or ');
+      const result = await this.host.callService({ service: 'Erp.BO.VendorSvc', operation: 'Vendors', method: 'GET', input: { $filter: filter, $select: 'VendorNum,VendorID,Name' } });
+      (result && result.data && Array.isArray(result.data.value) ? result.data.value : []).forEach((vendor) => this._vendorNames.set(vendor.VendorNum, vendor.Name || vendor.VendorID));
+    } catch (error) { /* names are a nicety; PO numbers still show */ }
+    if (token === this._detailToken) this._renderJobDetail();
+  }
+
+  _jobDetailModel() {
+    const { job, ds } = this._jobDetail;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const day = (value) => { if (!value) return null; const d = new Date(value); if (Number.isNaN(d.getTime())) return null; d.setHours(0, 0, 0, 0); return d; };
+    const head = (ds.JobHead || [])[0] || {};
+    const asms = Array.isArray(ds.JobAsmbl) ? ds.JobAsmbl : [];
+    const asmBySeq = new Map(asms.map((asm) => [Number(asm.AssemblySeq || 0), asm]));
+    const depth = (seq, guard = 0) => { const asm = asmBySeq.get(seq); if (!asm || seq === 0 || guard > 20) return 0; return 1 + depth(Number(asm.Parent || 0), guard + 1); };
+    const resource = new Map();
+    (ds.JobOpDtl || []).forEach((dtl) => { const key = `${Number(dtl.AssemblySeq || 0)}-${Number(dtl.OprSeq || 0)}`; if (!resource.has(key)) resource.set(key, dtl.ResourceGrpID || dtl.ResourceID || ''); });
+    const ops = (ds.JobOper || []).map((op) => {
+      const asm = Number(op.AssemblySeq || 0);
+      const start = day(op.StartDate); const due = day(op.DueDate);
+      const estHours = Number(op.EstSetHours || 0) + Number(op.EstProdHours || 0);
+      const hasActual = op.ActProdHours !== undefined || op.ActSetupHours !== undefined;
+      const actHours = Number(op.ActSetupHours || 0) + Number(op.ActProdHours || 0);
+      let status = 'notstarted';
+      if (op.OpComplete) status = 'done';
+      else if (due && due < today) status = 'late';
+      else if (Number(op.QtyCompleted || 0) > 0 || (start && start <= today)) status = 'active';
+      return { ...op, asm, depth: depth(asm), start, due, estHours, actHours, hasActual, status, resource: resource.get(`${asm}-${Number(op.OprSeq || 0)}`) || '', asmPart: (asmBySeq.get(asm) || {}).PartNum || '' };
+    }).sort((a, b) => (b.depth - a.depth) || (a.asm - b.asm) || (Number(a.OprSeq || 0) - Number(b.OprSeq || 0)));
+    const mtls = (ds.JobMtl || []).map((mtl) => {
+      const required = Number(mtl.RequiredQty || 0); const issued = Number(mtl.IssuedQty || 0);
+      const onHand = Number(this._inventory.get(mtl.PartNum) || 0);
+      const short = Math.max(0, required - issued - onHand);
+      const reqDate = day(mtl.ReqDate);
+      const supplies = (this._incoming.get(mtl.PartNum) || []).filter((supply) => supply.quantity > 0).map((supply) => {
+        const expected = day(supply.expectedDate);
+        return { ...supply, expected, overdue: Boolean(expected && expected < today), late: Boolean(expected && reqDate && expected > reqDate) };
+      }).sort((a, b) => (a.expected ? a.expected.getTime() : Infinity) - (b.expected ? b.expected.getTime() : Infinity));
+      return { ...mtl, required, issued, onHand, short, reqDate, supplies };
+    });
+    const asm0 = asmBySeq.get(0) || asms[0] || {};
+    const costKeys = [['Labor', 'LaborCost'], ['Burden', 'BurdenCost'], ['Material', 'MaterialCost'], ['Subcontract', 'SubcontractCost'], ['Material burden', 'MtlBurCost']];
+    const hasCosts = Object.keys(asm0).some((key) => /^TL[EA]/.test(key));
+    const num = (key) => Number(asm0[key] || 0);
+    const costs = hasCosts ? costKeys.map(([label, key]) => ({ label, est: num('TLE' + key) + num('LLE' + key), act: num('TLA' + key) + num('LLA' + key) })) : [];
+    const completed = ops.filter((op) => op.status === 'done').length;
+    const late = ops.filter((op) => op.status === 'late').length;
+    const allDates = [day(head.StartDate || job.StartDate), day(head.DueDate || head.ReqDueDate || job.DueDate || job.ReqDueDate), ...ops.flatMap((op) => [op.start, op.due])].filter(Boolean);
+    return { job, head, ops, mtls, costs, hasCosts, completed, late, today, minDate: allDates.length ? new Date(Math.min(...allDates)) : null, maxDate: allDates.length ? new Date(Math.max(...allDates)) : null };
+  }
+
+  _renderJobDetail() {
+    const e = this._els;
+    if (!e || !e.panelContent || !this._jobDetail) return;
+    const scroll = e.panel ? e.panel.scrollTop : 0;
+    const { job, ds, error } = this._jobDetail;
+    const money = (value) => '$' + Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    const hours = (value) => Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: 1 });
+    let html = JOB_DRAWER_STYLES;
+    if (error) {
+      html += `<div class="jd-error">Could not load job details: ${escapeHtml(error)}</div>`;
+    } else if (!ds) {
+      html += '<p class="jd-muted">Loading operations, materials, labor, and costs…</p>';
+    } else {
+      const m = this._jobDetailModel();
+      const total = m.ops.length;
+      const pct = total ? Math.round((m.completed / total) * 100) : 0;
+      const firm = m.head.JobFirm ?? job.JobFirm; const released = m.head.JobReleased ?? job.JobReleased;
+      const dueDays = daysFromToday(m.head.DueDate || m.head.ReqDueDate || job.DueDate || job.ReqDueDate);
+      const health = m.late ? `<span class="jd-chip jd-bad">${m.late} operation${m.late === 1 ? '' : 's'} past due</span>` : (total && m.completed === total ? '<span class="jd-chip jd-good">All operations complete</span>' : '<span class="jd-chip jd-good">On plan</span>');
+      html += `<div class="jd-sub" style="margin-top:-8px">${escapeHtml(m.head.PartNum || job.PartNum || '')}${(m.head.RevisionNum || job.RevisionNum) ? ' · Rev ' + escapeHtml(m.head.RevisionNum || job.RevisionNum) : ''}${m.head.PartDescription ? ' · ' + escapeHtml(m.head.PartDescription) : ''}</div>
+        <div class="jd-chips"><span class="jd-chip">${released ? 'Released' : firm ? 'Firm, unreleased' : 'Unfirm'}</span>${health}${dueDays !== null ? `<span class="jd-chip ${dueDays < 0 ? 'jd-bad' : dueDays <= 5 ? 'jd-warn' : ''}">${dueDays < 0 ? Math.abs(dueDays) + ' days past due' : 'Due in ' + dueDays + ' day' + (dueDays === 1 ? '' : 's')}</span>` : ''}</div>
+        <dl class="jd-facts"><div><dt>Quantity</dt><dd>${formatQty(m.head.ProdQty ?? job.ProdQty)}</dd></div><div><dt>Start</dt><dd>${formatDate(m.head.StartDate || job.StartDate)}</dd></div><div><dt>Due</dt><dd>${formatDate(m.head.DueDate || m.head.ReqDueDate || job.DueDate || job.ReqDueDate)}</dd></div><div><dt>Material</dt><dd>${escapeHtml(job.materialStatus ? job.materialStatus.label : '—')}</dd></div></dl>
+        <div class="jd-progress" aria-label="${m.completed} of ${total} operations complete"><div class="jd-bar"><span style="width:${pct}%"></span></div><span>${m.completed} of ${total} operations complete</span></div>
+        ${firm && released === false ? `<button type="button" class="button button-primary jd-release" data-jd-release="${escapeHtml(job.JobNum)}">Release job…</button>` : ''}`;
+
+      // Routing timeline
+      html += '<h3 class="jd-h">Routing timeline</h3>';
+      if (m.minDate && m.maxDate && total) {
+        const span = Math.max(1, m.maxDate - m.minDate);
+        const pos = (d) => Math.min(100, Math.max(0, ((d - m.minDate) / span) * 100));
+        const todayPos = m.today >= m.minDate && m.today <= m.maxDate ? pos(m.today) : null;
+        html += `<div class="jd-legend"><span class="jd-li"><span class="jd-key done"></span>Complete</span><span class="jd-li"><span class="jd-key active"></span>In progress</span><span class="jd-li"><span class="jd-key late"></span>Past due</span><span class="jd-li"><span class="jd-key notstarted"></span>Not started</span></div><div class="jd-timeline">`;
+        html += `<div class="jd-axis"><span>${formatDate(m.minDate)}</span><span>${formatDate(m.maxDate)}</span></div>`;
+        m.ops.forEach((op) => {
+          const s = op.start || op.due; const d = op.due || op.start;
+          const left = s ? pos(s) : 0; const width = s && d ? Math.max(1.5, pos(d) - left) : 1.5;
+          html += `<div class="jd-trow"><div class="jd-tlabel" title="${escapeHtml(op.asmPart)}">Asm ${op.asm} · ${escapeHtml(op.OprSeq)} ${escapeHtml(op.OpCode || '')}</div><div class="jd-ttrack">${todayPos !== null ? `<i class="jd-today" style="left:${todayPos}%"></i>` : ''}${s ? `<span class="jd-tbar ${op.status}" style="left:${left}%;width:${width}%" title="${escapeHtml(formatDate(op.start))} to ${escapeHtml(formatDate(op.due))}"></span>` : '<em>no dates</em>'}</div></div>`;
+        });
+        html += `</div>${todayPos !== null ? '<div class="jd-muted jd-small">Vertical line marks today.</div>' : ''}`;
+      } else {
+        html += '<p class="jd-muted">No scheduled operation dates on this job.</p>';
+      }
+
+      // Operations
+      html += `<h3 class="jd-h">Operations and resources</h3><div class="jd-scroll"><table class="jd-table"><thead><tr><th>Asm</th><th>Op</th><th>Code</th><th>Resource group</th><th class="n">Est hrs</th><th class="n">Act hrs</th><th class="n">Qty done</th><th>Due</th><th>Status</th></tr></thead><tbody>`;
+      html += m.ops.map((op) => `<tr><td>${op.asm}</td><td class="mono">${escapeHtml(op.OprSeq)}</td><td>${escapeHtml(op.OpCode || '')}</td><td>${escapeHtml(op.resource || '—')}</td><td class="n">${hours(op.estHours)}</td><td class="n">${op.hasActual ? hours(op.actHours) : '—'}</td><td class="n">${formatQty(op.QtyCompleted)}</td><td>${formatDate(op.DueDate)}</td><td><span class="jd-dot ${op.status}"></span>${{ done: 'Complete', active: 'In progress', late: 'Past due', notstarted: 'Not started' }[op.status]}</td></tr>`).join('') || '<tr><td colspan="9" class="jd-muted">No operations.</td></tr>';
+      html += '</tbody></table></div>';
+
+      // Materials and supply
+      html += `<h3 class="jd-h">Materials and supply</h3><div class="jd-scroll"><table class="jd-table"><thead><tr><th>Asm</th><th>Part</th><th class="n">Required</th><th class="n">Issued</th><th class="n">On hand</th><th class="n">Short</th><th>Needed</th><th>Open PO supply</th></tr></thead><tbody>`;
+      html += m.mtls.map((mtl) => {
+        const supply = mtl.supplies.length ? mtl.supplies.slice(0, 2).map((s) => {
+          const vendor = s.vendorNum && this._vendorNames && this._vendorNames.get(s.vendorNum);
+          const flag = s.overdue ? '<span class="jd-chip jd-bad">Overdue</span>' : s.late ? '<span class="jd-chip jd-bad">Arrives after need date</span>' : '';
+          return `<div>${mtl.short > 0 && flag ? flag + '<br>' : ''}PO ${escapeHtml(s.poNum ?? '?')}${vendor ? ' · ' + escapeHtml(vendor) : ''}<br><span class="jd-muted">${formatQty(s.quantity)} due ${formatDate(s.expectedDate)}</span></div>`;
+        }).join('') : (mtl.short > 0 ? '<span class="jd-chip jd-bad">No open PO</span>' : '<span class="jd-muted">—</span>');
+        return `<tr class="${mtl.short > 0 ? 'jd-shortrow' : ''}"><td>${escapeHtml(mtl.AssemblySeq ?? 0)}</td><td><span class="mono">${escapeHtml(mtl.PartNum)}</span>${mtl.Description ? `<div class="jd-muted jd-small">${escapeHtml(mtl.Description)}</div>` : ''}</td><td class="n">${formatQty(mtl.required)}</td><td class="n">${formatQty(mtl.issued)}</td><td class="n">${formatQty(mtl.onHand)}</td><td class="n ${mtl.short > 0 ? 'jd-badtext' : ''}">${formatQty(mtl.short)}</td><td>${formatDate(mtl.ReqDate)}</td><td class="jd-supply">${supply}</td></tr>`;
+      }).join('') || '<tr><td colspan="8" class="jd-muted">No materials on this job.</td></tr>';
+      html += '</tbody></table></div><div class="jd-muted jd-small">On hand is site-wide availability, not reserved for this job.</div>';
+
+      // Labor
+      html += '<h3 class="jd-h">Labor transactions</h3>';
+      const labor = this._jobDetail.labor;
+      if (labor === null) html += '<p class="jd-muted">Loading labor…</p>';
+      else if (this._jobDetail.laborError) html += `<p class="jd-muted">Labor records could not be read: ${escapeHtml(this._jobDetail.laborError)}</p>`;
+      else if (!labor.length) html += '<p class="jd-muted">No labor posted to this job yet.</p>';
+      else {
+        const totalHrs = labor.reduce((sum, row) => sum + Number(row.LaborHrs || 0), 0);
+        html += `<div class="jd-scroll"><table class="jd-table"><thead><tr><th>Date</th><th>Employee</th><th>Asm</th><th>Op</th><th>Resource group</th><th>Type</th><th class="n">Hours</th><th class="n">Qty</th></tr></thead><tbody>`;
+        html += labor.slice().sort((a, b) => new Date(b.ClockInDate || 0) - new Date(a.ClockInDate || 0)).slice(0, 50).map((row) => `<tr><td>${formatDate(row.ClockInDate || row.PayrollDate)}</td><td>${escapeHtml(row.EmployeeNum || row.EmpBasicName || '—')}</td><td>${escapeHtml(row.AssemblySeq ?? '—')}</td><td class="mono">${escapeHtml(row.OprSeq ?? '—')}</td><td>${escapeHtml(row.ResourceGrpID || '—')}</td><td>${escapeHtml({ P: 'Production', S: 'Setup', I: 'Indirect', R: 'Rework' }[row.LaborType] || row.LaborType || '—')}</td><td class="n">${hours(row.LaborHrs)}</td><td class="n">${formatQty(row.LaborQty)}</td></tr>`).join('');
+        html += `</tbody></table></div><div class="jd-muted jd-small">${labor.length} record${labor.length === 1 ? '' : 's'}, ${hours(totalHrs)} hours total${labor.length > 50 ? ' (latest 50 shown)' : ''}.</div>`;
+      }
+
+      // Costs
+      html += '<h3 class="jd-h">Costs: estimate vs actual</h3>';
+      if (!m.hasCosts) {
+        html += '<p class="jd-muted">Cost rollup fields were not returned for this job.</p>';
+      } else {
+        const max = Math.max(1, ...m.costs.flatMap((c) => [c.est, c.act]));
+        const estTotal = m.costs.reduce((s, c) => s + c.est, 0); const actTotal = m.costs.reduce((s, c) => s + c.act, 0);
+        html += '<div class="jd-legend"><span class="jd-li"><span class="jd-key est"></span>Estimate</span><span class="jd-li"><span class="jd-key act"></span>Actual to date</span></div><div class="jd-costs">';
+        html += m.costs.map((c) => `<div class="jd-crow"><div class="jd-clabel">${c.label}</div><div class="jd-cbars"><span class="jd-cbar est" style="width:${(c.est / max) * 100}%"></span><span class="jd-cval">${money(c.est)}</span><span class="jd-cbar act" style="width:${(c.act / max) * 100}%"></span><span class="jd-cval">${money(c.act)}</span></div></div>`).join('');
+        const variance = actTotal - estTotal;
+        html += `</div><dl class="jd-facts"><div><dt>Estimated total</dt><dd>${money(estTotal)}</dd></div><div><dt>Actual to date</dt><dd>${money(actTotal)}</dd></div><div><dt>Remaining estimate</dt><dd>${money(Math.max(0, estTotal - actTotal))}</dd></div></dl>`;
+        if (actTotal === 0) html += '<div class="jd-muted jd-small">No actual cost posted yet. Actuals come from labor and material issue transactions.</div>';
+        else if (m.completed === total && variance > 0) html += `<div class="jd-chip jd-bad">Over estimate by ${money(variance)}</div>`;
+      }
+    }
+    e.panelContent.innerHTML = html;
+    if (e.panel) e.panel.scrollTop = scroll;
+    const releaseBtn = e.panelContent.querySelector('[data-jd-release]');
+    if (releaseBtn) releaseBtn.addEventListener('click', () => { const num = releaseBtn.dataset.jdRelease; this._closePanel(); this._openReleaseDialog(num); });
+  }
+
+  _setPanelHeader(eyebrow, title) {
+    const panel = this._els && this._els.panel;
+    if (!panel) return;
+    const eb = panel.querySelector('.panel-header .eyebrow');
+    const h = panel.querySelector('#detail-panel-title');
+    if (eb) eb.textContent = eyebrow;
+    if (h) h.textContent = title;
+    if (this._els.closePanel) this._els.closePanel.setAttribute('aria-label', `Close ${eyebrow.toLowerCase()}`);
+  }
+
   _closePanel() {
+    this._setPanelHeader('Demand detail', 'Release details');
+    this._detailToken = (this._detailToken || 0) + 1;
+    this._jobDetail = null;
+    if (this._els && this._els.panel) this._els.panel.classList.remove('job-drawer');
     this._selected = null;
     if (this._els && this._els.panel) this._els.panel.hidden = true;
     const backdrop = this.host.contentRoot.querySelector('#panel-backdrop');
