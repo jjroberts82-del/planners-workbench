@@ -7519,7 +7519,7 @@ class PlannerRuntime {
     const onHand = material.allocatedOnHand === undefined ? Number(this._inventory.get(material.PartNum) || 0) : Number(material.allocatedOnHand || 0);
     const supplies = (this._incoming.get(material.PartNum) || []).slice();
     const incoming = supplies.reduce((sum, supply) => sum + Number(supply.quantity || 0), 0);
-    const shortQty = Math.max(0, Number(material.RequiredQty || 0) - Number(material.IssuedQty || 0) - onHand);
+    const shortQty = Math.max(0, Number(material.RequiredQty || 0) - Number(material.IssuedQty || 0) - Math.max(0, onHand));
     return { ...material, onHand, incoming, shortQty, supplies };
   }
 
@@ -8196,7 +8196,7 @@ class PlannerRuntime {
     const mtls = (ds.JobMtl || []).map((mtl) => {
       const required = Number(mtl.RequiredQty || 0); const issued = Number(mtl.IssuedQty || 0);
       const onHand = Number(this._inventory.get(mtl.PartNum) || 0);
-      const short = Math.max(0, required - issued - onHand);
+      const short = Math.max(0, required - issued - Math.max(0, onHand));
       const reqDate = day(mtl.ReqDate);
       const supplies = (this._incoming.get(mtl.PartNum) || []).filter((supply) => supply.quantity > 0).map((supply) => {
         const expected = day(supply.expectedDate);
